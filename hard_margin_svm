@@ -1,0 +1,40 @@
+import numpy as np
+from cvxopt import matrix, solvers
+import time
+
+# Function to run hard-margin SVM using CVXOPT
+def hard_margin_svm(X, y):
+    n_samples, n_features = X.shape
+    K = np.outer(y, y) * X.dot(X.T)
+    P = matrix(K, tc='d')
+    q = matrix(-np.ones((n_samples, 1)), tc='d')
+    G = matrix(-np.eye(n_samples), tc='d')
+    h = matrix(np.zeros(n_samples), tc='d')
+    A = matrix(y.reshape(1, -1).astype(np.double), tc='d')
+    b = matrix(np.zeros(1), tc='d')
+    
+    solvers.options['show_progress'] = False  # Suppress output
+    return solvers.qp(P, q, G, h, A, b)
+
+# Function to generate random datasets
+def generate_random_data(num_samples, num_features):
+    X = np.random.randn(num_samples, num_features)
+    y = np.random.choice([-1, 1], size=num_samples)
+    return X, y
+
+# Time the SVM implementation with varying sample sizes and dimensionalities
+sample_sizes = [10, 100, 1000]  # Example sample sizes
+feature_sizes = [3, 10, 50]     # Example feature dimensionalities
+
+for num_samples in sample_sizes:
+    for num_features in feature_sizes:
+        # Generate random dataset
+        X, y = generate_random_data(num_samples, num_features)
+        
+        # Time the hard-margin SVM
+        start = time.time()
+        solution = hard_margin_svm(X, y)
+        elapsed_time = time.time() - start
+        
+        # Print the time taken
+        print(f"Sample size: {num_samples}, Feature size: {num_features}, Time elapsed: {elapsed_time:.4f} seconds")
